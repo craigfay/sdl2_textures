@@ -4,6 +4,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
+use sdl2::render::BlendMode;
 
 pub fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -23,19 +24,20 @@ pub fn main() -> Result<(), String> {
         .create_texture_streaming(PixelFormatEnum::RGBA32, 256, 256)
         .map_err(|e| e.to_string())?;
 
-    // Create a red-green gradient
-    texture.with_lock(None, |buffer: &mut [u8], pitch: usize| {
+    // A blend mode needs to be set in order for alpha channels
+    // to take effect.
+    texture.set_blend_mode(BlendMode::Blend);
 
+    texture.with_lock(None, |buffer: &mut [u8], pitch: usize| {
         // pitch is the number of bytes in a row of pixel data,
         // including padding between lines
-
         for y in 0..256 {
             for x in 0..256 {
                 let offset = y * pitch + x * 4;
                 buffer[offset] = x as u8; // Red
-                buffer[offset + 1] = 0; // Gree
-                buffer[offset + 2] = 100 as u8; // Blue
-                buffer[offset + 3] = 200; // ?
+                buffer[offset + 1] = 0; // Green
+                buffer[offset + 2] = 100; // Blue
+                buffer[offset + 3] = 100; // Alpha
             }
         }
     })?;
@@ -45,8 +47,8 @@ pub fn main() -> Result<(), String> {
 
     canvas.copy_ex(
         &texture,
-        None, // 
-        Some(Rect::new(400, 100, 256, 256)), // x, y, width, height
+        None,
+        Some(Rect::new(200, 100, 256, 256)), // x, y, width, height
         0.0, // Rotation
         None,
         false,
