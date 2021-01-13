@@ -9,6 +9,25 @@ use sdl2::render::BlendMode;
 use image;
 use image::{ImageBuffer, Rgba};
 
+#[derive(Debug, Copy, Clone)]
+pub struct ControllerInput {
+    U: u8,
+    D: u8,
+    L: u8,
+    R: u8,
+}
+
+impl ControllerInput {
+    fn new() -> ControllerInput {
+        ControllerInput {
+            U: 0,
+            D: 0,
+            L: 0,
+            R: 0,
+        }
+    }
+}
+
 pub fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
@@ -72,17 +91,36 @@ pub fn main() -> Result<(), String> {
 
     let mut event_pump = sdl_context.event_pump()?;
 
+    let mut input = ControllerInput::new();
+
     'running: loop {
+
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => break 'running,
+
+                Event::Quit { .. } => break 'running,
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
+
+
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
+                    input.L = 1;
+                }
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+                    input.R = 1;
+                }
+                Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
+                    input.U = 1;
+                }
+                Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+                    input.D = 1;
+                }
+
                 _ => {}
             }
+
+            println!("{:?}", input);
         }
+
         // The rest of the game loop goes here...
     }
 
