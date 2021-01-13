@@ -115,6 +115,20 @@ pub fn main() -> Result<(), String> {
                     input.D = 1;
                 }
 
+                Event::KeyUp { keycode: Some(Keycode::Left), .. } => {
+                    input.L = 0;
+                }
+                Event::KeyUp { keycode: Some(Keycode::Right), .. } => {
+                    input.R = 0;
+                }
+                Event::KeyUp { keycode: Some(Keycode::Up), .. } => {
+                    input.U = 0;
+                }
+                Event::KeyUp { keycode: Some(Keycode::Down), .. } => {
+                    input.D = 0;
+                }
+
+
                 _ => {}
             }
 
