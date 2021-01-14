@@ -40,6 +40,7 @@ struct Window {
     canvas: WindowCanvas,
     event_pump: EventPump,
     input: ControllerInput,
+    is_available: bool,
 }
 
 impl Window {
@@ -60,15 +61,24 @@ impl Window {
 
         let mut input = ControllerInput::new();
 
-        Window { canvas, event_pump, input, }
+        Window {
+            canvas,
+            event_pump,
+            input,
+            is_available: true,
+        }
     }
 
     pub fn get_controller_input(&mut self) -> ControllerInput {
         for event in self.event_pump.poll_iter() {
             match event {
 
-                Event::Quit { .. } => {},
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {},
+                Event::Quit { .. } => {
+                    self.is_available = false;
+                },
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    self.is_available = false;
+                },
 
 
                 Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
@@ -98,7 +108,6 @@ impl Window {
                 }
                 _ => {}
             }
-            println!("{:?}", self.input);
         }
 
         self.input.clone()
@@ -159,5 +168,10 @@ impl Window {
 }
 
 pub fn main() {
-    let win = Window::new();
+    let mut win = Window::new();
+
+    while win.is_available {
+        let input = win.get_controller_input();
+        println!("{:?}", input);
+    }
 }
