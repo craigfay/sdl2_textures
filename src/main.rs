@@ -10,7 +10,7 @@ use sdl2::render::BlendMode;
 use sdl2::render::WindowCanvas;
 
 use image;
-use image::{ImageBuffer, Rgba};
+use image::{ImageBuffer, Rgba, RgbaImage};
 
 #[derive(Debug, Copy, Clone)]
 pub struct ControllerInput {
@@ -55,11 +55,9 @@ impl Window {
             .build()
             .map_err(|e| e.to_string()).unwrap();
 
-        let mut canvas = window.into_canvas().build().map_err(|e| e.to_string()).unwrap();
-
-        let mut event_pump = sdl_context.event_pump().unwrap();
-
-        let mut input = ControllerInput::new();
+        let canvas = window.into_canvas().build().map_err(|e| e.to_string()).unwrap();
+        let event_pump = sdl_context.event_pump().unwrap();
+        let input = ControllerInput::new();
 
         Window {
             canvas,
@@ -79,7 +77,6 @@ impl Window {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     self.is_available = false;
                 },
-
 
                 Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
                     self.input.L = 1;
@@ -113,11 +110,8 @@ impl Window {
         self.input.clone()
     }
 
-    pub fn render(&mut self) {
-
+    pub fn render(&mut self, img: RgbaImage) {
         let texture_creator = self.canvas.texture_creator();
-
-        let img = image::open("rust.png").unwrap().into_rgba8();
 
         let mut texture = texture_creator
             .create_texture_streaming(
@@ -126,7 +120,6 @@ impl Window {
                 img.height(),
             )
             .map_err(|e| e.to_string()).unwrap();
-
 
         // A blend mode needs to be set in order for alpha channels
         // to take effect.
@@ -164,14 +157,16 @@ impl Window {
 
         self.canvas.present();
     }
-
 }
 
 pub fn main() {
     let mut win = Window::new();
 
+    let img = image::open("rust.png").unwrap().into_rgba8();
+
+    win.render(img);
+
     while win.is_available {
         let input = win.get_controller_input();
-        println!("{:?}", input);
     }
 }
