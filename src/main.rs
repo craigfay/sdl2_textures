@@ -6,6 +6,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::BlendMode;
+use sdl2::render::WindowCanvas;
 
 use image;
 use image::{ImageBuffer, Rgba};
@@ -31,10 +32,11 @@ impl ControllerInput {
 
 trait GameDevice {
     fn get_controller_input(&self) -> ControllerInput;
+    fn render(&self);
 }
 
 struct Window {
-
+    canvas: WindowCanvas,
 }
 
 impl Window {
@@ -50,60 +52,13 @@ impl Window {
             .map_err(|e| e.to_string()).unwrap();
 
         let mut canvas = window.into_canvas().build().map_err(|e| e.to_string()).unwrap();
-        let texture_creator = canvas.texture_creator();
-
-        let img = image::open("rust.png").unwrap().into_rgba8();
-
-        let mut texture = texture_creator
-            .create_texture_streaming(
-                PixelFormatEnum::RGBA32,
-                img.width(),
-                img.height(),
-            )
-            .map_err(|e| e.to_string()).unwrap();
-
-
-        // A blend mode needs to be set in order for alpha channels
-        // to take effect.
-        texture.set_blend_mode(BlendMode::Blend);
-
-        texture.with_lock(None, |buffer: &mut [u8], pitch: usize| {
-            // pitch is the number of bytes in a row of pixel data,
-            // including padding between lines
-            for y in 0..img.height() {
-                for x in 0..img.width() {
-
-                    let offset: usize = y as usize * pitch + x as usize * 4;
-                    let pixel = img.get_pixel(x as u32, y as u32);
-
-                    buffer[offset] = pixel[0];
-                    buffer[offset + 1] = pixel[1];
-                    buffer[offset + 2] = pixel[2];
-                    buffer[offset + 3] = pixel[3];
-                }
-            }
-        }).unwrap();
-
-        canvas.clear();
-        canvas.copy(&texture, None, Some(Rect::new(100, 100, 256, 256))).unwrap();
-
-        canvas.copy_ex(
-            &texture,
-            None,
-            Some(Rect::new(400, 100, 256, 256)), // x, y, width, height
-            0.0, // Rotation
-            None,
-            false,
-            false,
-        ).unwrap();
-
-        canvas.present();
 
         let mut event_pump = sdl_context.event_pump().unwrap();
 
         let mut input = ControllerInput::new();
 
         'running: loop {
+            break;
 
             for event in event_pump.poll_iter() {
                 match event {
@@ -146,7 +101,59 @@ impl Window {
             }
         }
 
-        Window {}
+        Window { canvas }
+    }
+
+    pub fn render(&mut self) {
+
+        let texture_creator = self.canvas.texture_creator();
+
+        let img = image::open("rust.png").unwrap().into_rgba8();
+
+        let mut texture = texture_creator
+            .create_texture_streaming(
+                PixelFormatEnum::RGBA32,
+                img.width(),
+                img.height(),
+            )
+            .map_err(|e| e.to_string()).unwrap();
+
+
+        // A blend mode needs to be set in order for alpha channels
+        // to take effect.
+        texture.set_blend_mode(BlendMode::Blend);
+
+        texture.with_lock(None, |buffer: &mut [u8], pitch: usize| {
+            // pitch is the number of bytes in a row of pixel data,
+            // including padding between lines
+            for y in 0..img.height() {
+                for x in 0..img.width() {
+
+                    let offset: usize = y as usize * pitch + x as usize * 4;
+                    let pixel = img.get_pixel(x as u32, y as u32);
+
+                    buffer[offset] = pixel[0];
+                    buffer[offset + 1] = pixel[1];
+                    buffer[offset + 2] = pixel[2];
+                    buffer[offset + 3] = pixel[3];
+                }
+            }
+        }).unwrap();
+
+        self.canvas.clear();
+        self.canvas.copy(&texture, None, Some(Rect::new(100, 100, 256, 256))).unwrap();
+
+        self.canvas.copy_ex(
+            &texture,
+            None,
+            Some(Rect::new(400, 100, 256, 256)), // x, y, width, height
+            0.0, // Rotation
+            None,
+            false,
+            false,
+        ).unwrap();
+
+        self.canvas.present();
     }
 
 }
