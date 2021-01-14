@@ -1,6 +1,7 @@
 // https://sunjay.dev/learn-game-dev/smooth-movement.html
 extern crate sdl2;
 
+use sdl2::EventPump;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
@@ -37,6 +38,8 @@ trait GameDevice {
 
 struct Window {
     canvas: WindowCanvas,
+    event_pump: EventPump,
+    input: ControllerInput,
 }
 
 impl Window {
@@ -57,51 +60,48 @@ impl Window {
 
         let mut input = ControllerInput::new();
 
-        'running: loop {
-            break;
+        Window { canvas, event_pump, input, }
+    }
 
-            for event in event_pump.poll_iter() {
-                match event {
+    pub fn get_controller_input(&mut self) -> ControllerInput {
+        for event in self.event_pump.poll_iter() {
+            match event {
 
-                    Event::Quit { .. } => break 'running,
-                    Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
-
-
-                    Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
-                        input.L = 1;
-                    }
-                    Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
-                        input.R = 1;
-                    }
-                    Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
-                        input.U = 1;
-                    }
-                    Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
-                        input.D = 1;
-                    }
-
-                    Event::KeyUp { keycode: Some(Keycode::Left), .. } => {
-                        input.L = 0;
-                    }
-                    Event::KeyUp { keycode: Some(Keycode::Right), .. } => {
-                        input.R = 0;
-                    }
-                    Event::KeyUp { keycode: Some(Keycode::Up), .. } => {
-                        input.U = 0;
-                    }
-                    Event::KeyUp { keycode: Some(Keycode::Down), .. } => {
-                        input.D = 0;
-                    }
+                Event::Quit { .. } => {},
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {},
 
 
-                    _ => {}
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
+                    self.input.L = 1;
+                }
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+                    self.input.R = 1;
+                }
+                Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
+                    self.input.U = 1;
+                }
+                Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+                    self.input.D = 1;
                 }
 
-                println!("{:?}", input);
+                Event::KeyUp { keycode: Some(Keycode::Left), .. } => {
+                    self.input.L = 0;
+                }
+                Event::KeyUp { keycode: Some(Keycode::Right), .. } => {
+                    self.input.R = 0;
+                }
+                Event::KeyUp { keycode: Some(Keycode::Up), .. } => {
+                    self.input.U = 0;
+                }
+                Event::KeyUp { keycode: Some(Keycode::Down), .. } => {
+                    self.input.D = 0;
+                }
+                _ => {}
             }
+            println!("{:?}", self.input);
         }
 
-        Window { canvas }
+        self.input.clone()
     }
 
     pub fn render(&mut self) {
